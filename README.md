@@ -19,10 +19,6 @@ Este projeto tem como objetivo criar API de comprar para teste tecnico da NTCons
 * **H2 Database:** Banco de dados leve e ideal para desenvolvimento.
 * **Spring Validation:** Validação de dados de entrada.
 
-## Instalação e Uso
-
-1. Clone o repositório: `git clone https://github.com/seu-usuario/seu-repositorio.git`
-
 **Exemplo de requisição:**
 
 ```bash
