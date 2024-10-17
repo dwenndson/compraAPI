@@ -25,13 +25,16 @@ public class CompraServiceImpl implements CompraService {
     private CompraMapper compraMapper;
 
     public Compra cadastrarCompra(CompraDto compraDto) {
-        List<Compra> comprasExistentes = compraRepository.findByCpfComprador(CpfUtil.Mask(
-            compraDto.cpfComprador()));
-        if(!comprasExistentes.isEmpty()) {
-            validaCompra(comprasExistentes, compraDto.quantidade());
+        if (compraDto.quantidade() <= 3) {
+            List<Compra> comprasExistentes = compraRepository.findByCpfComprador(CpfUtil.Mask(
+                    compraDto.cpfComprador()));
+            if (!comprasExistentes.isEmpty()) {
+                validaCompra(comprasExistentes, compraDto.quantidade());
+            }
+            Compra compraSave = compraMapper.mapToCompra(compraDto);
+            return compraRepository.save(compraSave);
         }
-        Compra compraSave = compraMapper.mapToCompra(compraDto);
-        return compraRepository.save(compraSave);
+        throw new IllegalArgumentException("Um CPF não pode comprar mais de 3 unidades do mesmo produto.");
     }
 
     public List<Compra> pesquisarCompras(String cpfComprador, String nomeProduto, LocalDateTime dataInicio, LocalDateTime dataFim) {
@@ -41,19 +44,19 @@ public class CompraServiceImpl implements CompraService {
     public List<Relatorio> gerarRelatorio(LocalDateTime dataInicio, LocalDateTime dataFim) {
         List<Compra> compras = compraRepository.findByDataHoraCompraBetween(dataInicio, dataFim);
         return compras.stream()
-            .collect(Collectors.groupingBy(Compra::getNomeProduto, Collectors.toList()))
-            .entrySet().stream()
-            .map(entry -> new Relatorio(
-                entry.getKey(),
-                entry.getValue().get(0).getValorUnitario(),
-                entry.getValue().size(),
-                entry.getValue().stream()
-                    .map(Compra::getValorUnitario)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add)
-            )).collect(Collectors.toList());
+                .collect(Collectors.groupingBy(Compra::getNomeProduto, Collectors.toList()))
+                .entrySet().stream()
+                .map(entry -> new Relatorio(
+                        entry.getKey(),
+                        entry.getValue().get(0).getValorUnitario(),
+                        entry.getValue().size(),
+                        entry.getValue().stream()
+                                .map(Compra::getValorUnitario)
+                                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                )).collect(Collectors.toList());
     }
 
-    private void validaCompra(List<Compra> compraList, int quantidade){
+    private void validaCompra(List<Compra> compraList, int quantidade) {
         int totalQuantidade = compraList.stream()
                 .mapToInt(Compra::getQuantidade).sum() + quantidade;
 
